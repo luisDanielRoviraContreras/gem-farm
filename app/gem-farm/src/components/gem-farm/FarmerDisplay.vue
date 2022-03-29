@@ -1,43 +1,36 @@
 <template>
-  <div class="nes-container with-title">
-    <p class="title">Your Staking Account</p>
+  <div>
+    <!-- <p class="title">Info</p>
     <div class="mb-2">
-      state:
-      <p class="inline-block bg-yellow-200">
-        {{ parseFarmerState(farmerAcc) }}
-      </p>
+      State:
+      <p class="inline-block bg-yellow-200">{{ parseFarmerState(farmerAcc) }}</p>
     </div>
-    <div class="mb-2">Your identity: {{ farmerAcc.identity.toBase58() }}</div>
-    <div class="mb-2">Associated vault: {{ farmerAcc.vault.toBase58() }}</div>
-    <div class="mb-2">Gems staked: {{ farmerAcc.gemsStaked }}</div>
-    <div class="mb-2">
-      Min staking ends: {{ parseDate(farmerAcc.minStakingEndsTs) }}
-    </div>
-    <div class="mb-5">
-      Cooldown ends: {{ parseDate(farmerAcc.cooldownEndsTs) }}
-    </div>
-
-    <div class="flex mb-5">
+    <div class="mb-2">Wallet: {{ farmerAcc?.identity.toBase58() }}</div>
+     <div class="mb-2">Associated vault: {{ farmerAcc?.vault.toBase58() }}</div>
+    <div class="mb-2">Bizarre Platypus Staked: {{ farmerAcc?.gemsStaked }}</div>
+    <div class="mb-2">Min staking ends: {{ parseDate(farmerAcc?.minStakingEndsTs) }}</div>
+    <div class="mb-5">Cooldown ends: {{ parseDate(farmerAcc?.cooldownEndsTs) }}</div>-->
+    <!-- <div>{{ farmerAcc?.rewardA.accruedReward }}</div>
+    <div>{{ farmerAcc?.rewardA.paidOutReward }}</div>-->
+    <!-- <div class="flex mb-5">
       <div class="flex-1 mr-5">
         <FarmerRewardDisplay
-          :key="farmerAcc.rewardA"
-          :farmReward="farmAcc.rewardA"
-          :reward="farmerAcc.rewardA"
-          title="Reward A"
+          :key="farmerAcc?.rewardA"
+          :farmReward="farmAcc?.rewardA"
+          :reward="farmerAcc?.rewardA"
+          title
         />
       </div>
       <div class="flex-1">
         <FarmerRewardDisplay
-          :key="farmerAcc.rewardB"
-          :farmReward="farmAcc.rewardB"
-          :reward="farmerAcc.rewardB"
+          :key="farmerAcc?.rewardB"
+          :farmReward="farmAcc?.rewardB"
+          :reward="farmerAcc?.rewardB"
           title="Reward B"
         />
       </div>
-    </div>
-    <button class="nes-btn is-primary mb-5" @click="refreshFarmer">
-      Refresh account
-    </button>
+    </div>-->
+    <button class="btn-unstake" @click="refreshFarmer">Refresh account</button>
   </div>
 </template>
 

@@ -2,6 +2,7 @@ import { readonly, ref } from 'vue';
 import { Commitment, Connection } from '@solana/web3.js';
 
 export enum Cluster {
+  // Mainnet = 'devnet',
   Mainnet = 'mainnet',
   Devnet = 'devnet',
   Testnet = 'testnet',

@@ -1,80 +1,18 @@
 <template>
   <!--control buttons-->
-  <div class="content-popup">
-    <div class="con-popup">
+  <div class="con-staked">
+    <!--wallet + vault view-->
+    <div class="flex items-stretch">
+      <!--right-->
+      <NFTGrid
+        v-if="bank && vault"
+        title="Your vault"
+        class="flex-1"
+        :nfts="desiredVaultNFTs"
+        @selected="handleVaultSelected"
+        :info="true"
+      ></NFTGrid>
       <slot></slot>
-      <button class="close" @click="handleClose">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-          <path
-            d="m16.192 6.344-4.243 4.242-4.242-4.242-1.414 1.414L10.535 12l-4.242 4.242 1.414 1.414 4.242-4.242 4.243 4.242 1.414-1.414L13.364 12l4.242-4.242z"
-          />
-        </svg>
-      </button>
-      <div class="popup">
-        <div v-if="desiredVaultNFTs.length > 0"></div>
-
-        <button @click="refresh">Refresh {{ isMove }}</button>
-      </div>
-
-      <!--wallet + vault view-->
-      <div class="flex items-stretch">
-        <!--left-->
-        <NFTGrid
-          title="Selected your NFT"
-          class="flex-1"
-          :nfts="desiredWalletNFTs"
-          @selected="handleWalletSelected"
-          move
-        >
-          <button
-            v-if="selectedNFTs.length > 0 && farmerState === 'staked'"
-            @click="$emit('add-gems')"
-          >Add Bizarre Platypus (resets staking)</button>
-          <!-- <button @click="$emit('add-gems')">Add Bizarre Platypus (resets staking)</button> -->
-        </NFTGrid>
-
-        <!--mid-->
-        <div class="m-2 flex flex-col">
-          <ArrowButton :disabled="vaultLocked" class="my-2" @click="moveNFTsFE(false)" />
-          <ArrowButton :disabled="vaultLocked" class="my-2" :left="true" @click="moveNFTsFE(true)" />
-        </div>
-
-        <!--right-->
-        <NFTGrid
-          title="NFTS IN THE TRUNK"
-          class="flex-1"
-          :nfts="desiredVaultNFTs"
-          :move="isMove"
-          :farmerState="farmerState"
-          @selected="handleVaultSelected"
-        >
-          <!-- <div v-if="vaultLocked" class="locked">
-            <p class="mt-10">This vault is locked!</p>
-          </div>-->
-          <button
-            v-if="
-              (toWalletNFTs && toWalletNFTs.length) ||
-              (toVaultNFTs && toVaultNFTs.length)
-            "
-            @click="moveNFTsOnChain"
-          >Move Bizarre Platypus!</button>
-          <button v-if="farmerState == 'unstaked'" @click="$emit('start')">Start Staking</button>
-          <button v-if="farmerState == 'pendingCooldown'" @click="$emit('end-staking')">End cooldown</button>
-          <p>{{ farmerState }}</p>
-        </NFTGrid>
-
-        <NFTGrid
-          title="NFTS IN STAKING"
-          class="flex-1"
-          :nfts="desiredVaultNFTs"
-          @selected="handleVaultSelected"
-          :farmerState="farmerState"
-          :staking="true"
-          :notSelected="true"
-        >
-          <button v-if="farmerState == 'staked'" @click="$emit('end-staking')">Unstaked</button>
-        </NFTGrid>
-      </div>
     </div>
   </div>
 </template>
@@ -94,17 +32,13 @@ import { initGemBank } from '@/common/gem-bank';
 import { PublicKey } from '@solana/web3.js';
 import { getListDiffBasedOnMints, removeManyFromList } from '@/common/util';
 import { BN } from '@project-serum/anchor';
-import NFTStaked from '@/components/gem-bank/NFTStaked.vue';
-import RefreshFarmerVue from '../gem-farm/RefreshFarmer.vue';
 
 export default defineComponent({
-  components: { ArrowButton, NFTGrid, NFTStaked },
+  components: { ArrowButton, NFTGrid },
   props: {
-    farmerState: String,
     vault: String,
-    selectedNFTs: Array,
   },
-  emits: ['selected-wallet-nft', 'moveimage', 'close', 'end-staking', 'add-gems', 'start'],
+  emits: ['selected-wallet-nft'],
   setup(props, ctx) {
     const { wallet, getWallet } = useWallet();
     const { cluster, getConnection } = useCluster();
@@ -123,13 +57,6 @@ export default defineComponent({
     //moved over onchain
     const toWalletNFTs = ref<INFT[]>([]);
     const toVaultNFTs = ref<INFT[]>([]);
-
-    const isMove = ref(false)
-
-    const refresh = async () => {
-      console.log('paso por refresh')
-      await Promise.all([populateWalletNFTs(), populateVaultNFTs()]);
-    }
 
     // --------------------------------------- populate initial nfts
 
@@ -162,9 +89,6 @@ export default defineComponent({
         console.log(`found a total of ${foundGDRs.length} gdrs`);
 
         const mints = foundGDRs.map((gdr: any) => {
-          console.log('gdr')
-          console.log(gdr)
-          console.log('gdr')
           return { mint: gdr.account.gemMint };
         });
         currentVaultNFTs.value = await getNFTMetadataForMany(
@@ -224,7 +148,6 @@ export default defineComponent({
     };
 
     const moveNFTsFE = (moveLeft: boolean) => {
-
       if (moveLeft) {
         //push selected vault nfts into desired wallet
         desiredWalletNFTs.value.push(...selectedVaultNFTs.value);
@@ -308,7 +231,6 @@ export default defineComponent({
         creator
       );
       console.log('deposit done', txSig);
-      ctx.emit('moveimage')
     };
 
     const withdrawGem = async (mint: PublicKey) => {
@@ -320,11 +242,6 @@ export default defineComponent({
       );
       console.log('withdrawal done', txSig);
     };
-
-    const handleClose = () => {
-      console.log('click')
-      ctx.emit('close');
-    }
 
     // --------------------------------------- return
 
@@ -342,31 +259,12 @@ export default defineComponent({
       // eslint-disable-next-line vue/no-dupe-keys
       vault,
       vaultLocked,
-      handleClose,
-      refresh,
     };
   },
 });
 </script>
 
 <style>
-.close {
-  position: absolute;
-  right: 0px;
-  top: 0px;
-  width: 50px;
-  height: 50px;
-  border: 0px;
-  background: #000;
-  color: #fff;
-  border-radius: 10px;
-  border: 2px solid #fff;
-  box-shadow: 0px 5px 20px 0px rgba(255, 255, 255, 0.15);
-}
-.close svg {
-  width: 30px;
-  fill: #fff;
-}
 .locked {
   width: 100%;
   height: 100%;
@@ -381,42 +279,19 @@ export default defineComponent({
   align-items: center;
   justify-content: center;
 }
-/* .con-popup {
-  position: fixed;
-  background: #000;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-} */
-.content-popup {
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
-  position: fixed;
-  z-index: 1000;
+.con-staked {
+  position: relative;
+  margin-left: 50px;
+  min-height: 300px;
 }
-.con-popup {
-  position: fixed;
-  left: 0px;
-  top: 0px;
-  backdrop-filter: saturate(180%) blur(10px);
-  background: rgba(0, 0, 0, 0.55);
-  border-radius: 0px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  color: #fff;
-  width: 100%;
-  height: 100%;
-  background-image: url("~@/assets/bg-popup.png");
+
+.con-staked .gridx {
+  min-width: 300px;
+  min-height: 300px;
 }
-.con-popup .gridx .con-nfts {
-  padding-top: 8px;
-  height: 600px !important;
-  background: #000;
-}
-.con-popup .gridx .titlex {
-  margin-bottom: 0px;
+
+.con-staked .con-nfts {
+  height: 300px;
+  overflow: auto;
 }
 </style>
